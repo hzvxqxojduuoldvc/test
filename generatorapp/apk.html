@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Page Generator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 50%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 40px 20px;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(circle at 20% 50%, rgba(0,255,136,.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(100,200,255,.08) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #00ff88, #00d4ff, #b000ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            z-index: 1;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        form {
+            max-width: 500px;
+            margin: 0 auto;
+            background: rgba(20,20,40,.8);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid rgba(0,255,136,.2);
+            box-shadow: 0 8px 32px rgba(0,0,0,.3), inset 0 0 30px rgba(0,255,136,.05);
+            position: relative;
+            z-index: 1;
+        }
+
+        label {
+            display: block;
+            margin-top: 20px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #00ff88;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: .85rem;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255,255,255,.05);
+            border: 2px solid rgba(0,255,136,.3);
+            border-radius: 10px;
+            color: #e0e0e0;
+            font-family: 'Courier New', monospace;
+            transition: all .3s ease;
+            font-size: .95rem;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            background: rgba(0,255,136,.1);
+            border-color: #00ff88;
+            outline: none;
+            box-shadow: 0 0 20px rgba(0,255,136,.4);
+        }
+
+        input::placeholder, textarea::placeholder { color: rgba(224,224,224,.5); }
+        select option { background: #1a1a2e; color: #00ff88; }
+
+        button {
+            background: linear-gradient(135deg, #00ff88 0%, #00d4ff 100%);
+            color: #0f0f1e;
+            padding: 14px;
+            border: none;
+            width: 100%;
+            cursor: pointer;
+            margin-top: 20px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all .3s ease;
+            box-shadow: 0 0 20px rgba(0,255,136,.3);
+        }
+
+        button:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(0,255,136,.5); }
+        button:active { transform: translateY(-1px); }
+        button:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0,255,136,.1);
+            border-left: 4px solid #00ff88;
+            border-radius: 8px;
+            color: #00ff88;
+            display: none;
+            word-break: break-all;
+            font-weight: bold;
+        }
+
+        #result a { color: #00d4ff; text-decoration: none; }
+        #result a:hover { color: #00ff88; }
+
+        #copyBtn {
+            background: linear-gradient(135deg, #b000ff 0%, #ff006e 100%);
+            color: white;
+            display: none;
+            box-shadow: 0 0 20px rgba(176,0,255,.3);
+        }
+
+        #copyBtn:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(176,0,255,.5); }
+
+        @keyframes rainbow-pulse {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .fab {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+
+        .fab a {
+            font-size: 14px;
+            text-decoration: none;
+            color: #fff;
+            padding: 8px 14px;
+            border-radius: 999px;
+            box-shadow: 0 4px 10px rgba(0,0,0,.2);
+            display: inline-block;
+            font-weight: bold;
+            background: linear-gradient(90deg,#ff0000,#ff7f00,#ffff00,#00ff00,#0000ff,#4b0082,#9400d3);
+            background-size: 300% 300%;
+            animation: rainbow-pulse 2s infinite;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="fab">
+        <a href="config.html">⚙ Config APK List</a>
+    </div>
+
+    <h1>Application Page Generator</h1>
+
+    <form>
+        <input type="hidden" id="company" value="wm">
+
+        <label>APK:</label>
+        <select id="apkType"><option value="">Loading...</option></select>
+
+        <label>Product:</label>
+        <select id="product"><option value="">Loading...</option></select>
+
+        <label>Currency:</label>
+        <select id="currency">
+            <option value="RM">RM</option>
+            <option value="RP">RP</option>
+        </select>
+
+        <label>Price:</label>
+        <input type="text" id="price" placeholder="Enter price value" required>
+
+        <label>Order:</label>
+        <textarea id="order" placeholder="Enter order details (Press Enter for next line)" rows="10" required></textarea>
+
+        <button type="button" id="genBtn" onclick="generateLink()">Generate Link</button>
+
+        <div id="result">Generated Link: <a href="#" target="_blank" id="generatedLink"></a></div>
+        <button type="button" id="copyBtn" onclick="copyToClipboard()">Copy to Clipboard</button>
+    </form>
+
+    <script src="../config.js"></script>
+    <script>
+
+        function urlSafeBase64Encode(str) {
+            return btoa(unescape(encodeURIComponent(str)))
+                .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
+
+        async function initApkDropdown() {
+            const sel = document.getElementById('apkType');
+            try {
+                const res  = await fetch(`${API}?action=get_config`);
+                const data = await res.json();
+                sel.innerHTML = data.map(function(item) {
+                    return `<option value="${escAttr(item.value)}">${escHtml(item.name)}</option>`;
+                }).join('');
+            } catch(e) {
+                sel.innerHTML = '<option value="">⚠ Cannot load config</option>';
+            }
+        }
+
+        async function initProductDropdown() {
+            const sel = document.getElementById('product');
+            try {
+                const res  = await fetch(`${API}?action=get_products`);
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
+                sel.innerHTML = data.map(function(item) {
+                    return `<option value="${escAttr(item.id)}">${escHtml(item.name)}</option>`;
+                }).join('');
+            } catch(e) {
+                sel.innerHTML = '<option value="">⚠ Cannot load products</option>';
+            }
+        }
+
+        async function generateLink() {
+            const company    = document.getElementById('company').value;
+            const productSel = document.getElementById('product');
+            const agentId    = productSel.value;
+            const productName = productSel.options[productSel.selectedIndex].text;
+            const price      = document.getElementById('price').value.trim();
+            const currency   = document.getElementById('currency').value;
+            const order      = document.getElementById('order').value;
+            const apkUrl     = document.getElementById('apkType').value;
+
+            if (!agentId)  { alert('Please select a product'); return; }
+            if (!price)    { alert('Please enter a price'); return; }
+            if (!order)    { alert('Please enter order details'); return; }
+
+            const params = `a=${agentId}&pr=${encodeURIComponent(price)}&cur=${encodeURIComponent(currency)}&o=${encodeURIComponent(order)}&c=${encodeURIComponent(company)}&p=${encodeURIComponent(productName)}&an=invoice&w=1&po=0&pin=No&apk=${encodeURIComponent(apkUrl)}`;
+            const base64 = urlSafeBase64Encode(params);
+
+            const btn = document.getElementById('genBtn');
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+
+            try {
+                const body = new URLSearchParams({ base64 });
+                const res  = await fetch(`${API}?action=save_link`, { method: 'POST', body });
+                const data = await res.json();
+
+                if (data.error) throw new Error(data.error);
+
+                const origin   = window.location.origin;
+                const pathBase = window.location.pathname.replace(/\/generatorapp\/.*$/, '');
+                const link     = `${origin}${pathBase}/${data.key}`;
+
+                document.getElementById('generatedLink').textContent = link;
+                document.getElementById('generatedLink').href = link;
+                document.getElementById('result').style.display = 'block';
+                document.getElementById('copyBtn').style.display = 'block';
+            } catch(e) {
+                alert('Error: ' + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Generate Link';
+            }
+        }
+
+        function copyToClipboard() {
+            const link = document.getElementById('generatedLink').textContent;
+            navigator.clipboard.writeText(link).then(function() {
+                const btn = document.getElementById('copyBtn');
+                const orig = btn.textContent;
+                btn.textContent = 'Copied!';
+                setTimeout(function() { btn.textContent = orig; }, 2000);
+            }).catch(function() {
+                alert('Copy failed — please copy manually');
+            });
+        }
+
+        function escHtml(s) {
+            return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        }
+        function escAttr(s) {
+            return String(s).replace(/"/g,'&quot;');
+        }
+
+        initApkDropdown();
+        initProductDropdown();
+    </script>
+</body>
+</html>

